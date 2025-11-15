@@ -1,0 +1,43 @@
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #fafafa;
+}
+
+h1, h2, h3, h4, h5 {
+  color: #333;
+}
+
+.btn-primary {
+  background-color: #d94f04;
+  border-color: #d94f04;
+}
+
+.btn-primary:hover {
+  background-color: #c34703;
+  border-color: #c34703;
+}
+
+.nav-link .badge {
+  transform: translate(-30%, -30%) !important;
+}
+
+.list-group-item {
+  border: none;
+  border-bottom: 1px solid #eee;
+}
+
+.table th, .table td {
+  vertical-align: middle;
+}
+
+.nav-link:hover {
+  color: #ffc107 !important;
+}
+
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
