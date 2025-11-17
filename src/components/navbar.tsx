@@ -10,7 +10,16 @@ export default function Navbar() {
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark px-4">
       <div className="container-fluid">
         <Link className="navbar-brand fw-bold" href="/">
-          Kedai Kirana
+          <img
+            src="/images/logo.png"
+            alt="Logo Kedai Kirana"
+            style={{
+              width: "100px",
+              height: "60px",
+              objectFit: "contain",
+            }}
+          />
+          <span className="ms-2"></span>
         </Link>
 
         <button

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { products } from "@/data/products";
+import ProductList from "@/components/ProductList";
 
 type Product = {
   id: number;
@@ -169,6 +170,7 @@ export default function MenuPage() {
                     >
                       Detail
                     </Link>
+                    <ProductList />
                   </div>
                 </div>
               </div>

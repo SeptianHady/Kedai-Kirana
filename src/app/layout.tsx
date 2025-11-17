@@ -25,10 +25,20 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>
+      <body className="d-flex flex-column min-vh-100"
+        style={{
+          backgroundColor: "#ecd134ff",
+        }}
+        >
+          
         <CartProvider>
           <Navbar />
-          {children}
+
+          <main className="flex-grow-1">
+            {children}
+          </main>
+
+          <Footer />
         </CartProvider>
       </body>
     </html>

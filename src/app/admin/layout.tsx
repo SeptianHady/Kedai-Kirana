@@ -30,7 +30,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     <div className="d-flex" style={{ minHeight: "100vh" }}>
       {/* SIDEBAR */}
       <div className="bg-dark text-white p-3" style={{ width: "250px" }}>
-        <h4 className="text-center mb-4">Kedai Kirana</h4>
 
         <ul className="nav flex-column">
           <li className="nav-item mb-2">
