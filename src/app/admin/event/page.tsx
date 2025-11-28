@@ -1,34 +1,41 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import {
+  getEvents,
+  deleteEvent,
+  activateEvent,
+  deactivateEvent,
+} from "@/app/apis/fetchers/events";
 
 export default function EventAdminPage() {
-  const [events, setEvents] = useState([
-    { id: 1, name: "Hari Raya Jakarta", tag: "jakarta", active: false },
-    { id: 2, name: "Menu Ramadhan", tag: "ramadhan", active: false },
-  ]);
+  const [events, setEvents] = useState([]);
 
-  const setActiveEvent = (id: number) => {
-    setEvents((prev) =>
-      prev.map((e) => ({
-        ...e,
-        active: e.id === id, // yang dipilih = aktif
-      }))
-    );
+  useEffect(() => {
+    loadEvents();
+  }, []);
+
+  const loadEvents = async () => {
+    const data = await getEvents();
+    setEvents(data);
   };
 
-  const deactivateEvent = () => {
-    setEvents((prev) =>
-      prev.map((e) => ({
-        ...e,
-        active: false,
-      }))
-    );
+  const handleActivate = async (id: number) => {
+    await activateEvent(id);
+    loadEvents();
   };
 
-  const deleteEvent = (id: number) => {
-    setEvents((prev) => prev.filter((e) => e.id !== id));
+  const handleDeactivate = async (id: number) => {
+    await deactivateEvent(id);
+    loadEvents();
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Hapus event ini?")) return;
+
+    await deleteEvent(id);
+    loadEvents();
   };
 
   return (
@@ -46,12 +53,12 @@ export default function EventAdminPage() {
             <th>Nama Event</th>
             <th>Tag</th>
             <th>Status</th>
-            <th>Aksi</th>
+            <th style={{ width: "220px" }}>Aksi</th>
           </tr>
         </thead>
 
         <tbody>
-          {events.map((event) => (
+          {events.map((event: any) => (
             <tr key={event.id}>
               <td>{event.name}</td>
               <td>{event.tag}</td>
@@ -63,27 +70,32 @@ export default function EventAdminPage() {
                 )}
               </td>
               <td>
-                {!event.active && (
+                {event.active ? (
+                  <button
+                    className="btn btn-sm btn-warning me-2"
+                    onClick={() => handleDeactivate(event.id)}
+                  >
+                    Nonaktifkan
+                  </button>
+                ) : (
                   <button
                     className="btn btn-sm btn-success me-2"
-                    onClick={() => setActiveEvent(event.id)}
+                    onClick={() => handleActivate(event.id)}
                   >
                     Aktifkan
                   </button>
                 )}
 
-                {event.active && (
-                  <button
-                    className="btn btn-sm btn-warning me-2"
-                    onClick={deactivateEvent}
-                  >
-                    Nonaktifkan
-                  </button>
-                )}
+                <Link
+                  href={`/admin/event/${event.id}/edit`}
+                  className="btn btn-sm btn-info me-2"
+                >
+                  Edit
+                </Link>
 
                 <button
                   className="btn btn-sm btn-danger"
-                  onClick={() => deleteEvent(event.id)}
+                  onClick={() => handleDelete(event.id)}
                 >
                   Hapus
                 </button>

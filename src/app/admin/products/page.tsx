@@ -1,103 +1,108 @@
 "use client";
-
-import { useState } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 
-interface Product {
-  id: number;
-  name: string;
-  category: string;
-  price: number;
-  image: string;
-}
+export default function AdminProductListPage() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-export default function AdminProductsPage() {
-  const [products, setProducts] = useState<Product[]>([
-    {
-      id: 1,
-      name: "Nasi Goreng",
-      category: "Makanan",
-      price: 20000,
-      image: "/images/nasgor.jpg",
-    },
-    {
-      id: 2,
-      name: "Es Teh Manis",
-      category: "Minuman",
-      price: 8000,
-      image: "/images/esteh.jpg",
-    },
-  ]);
-
-  const handleDelete = (id: number) => {
-    setProducts(products.filter((p) => p.id !== id));
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/products");
+      const data = await res.json();
+      setProducts(data);
+    } catch (err) {
+      console.error("Error fetching products:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const deleteProduct = async (id: number) => {
+    if (!confirm("Yakin ingin menghapus produk ini?")) return;
+
+    await fetch(`http://localhost:5000/products/${id}`, {
+      method: "DELETE",
+    });
+
+    fetchProducts(); // Refresh list
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  if (loading) return <p className="p-4">Loading...</p>;
+
   return (
-    <div className="container mt-3">
+    <div className="container py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h3 className="m-0">Daftar Produk</h3>
+        <h2 className="fw-bold">📦 Daftar Produk</h2>
 
         <Link href="/admin/products/add" className="btn btn-primary">
           + Tambah Produk
         </Link>
       </div>
 
-      <table className="table table-bordered table-striped">
-        <thead className="table-dark">
-          <tr>
-            <th>ID</th>
-            <th>Gambar</th>
-            <th>Nama</th>
-            <th>Kategori</th>
-            <th>Harga</th>
-            <th className="w-25">Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          {products.length === 0 ? (
-            <tr>
-              <td colSpan={6} className="text-center">
-                Belum ada produk
-              </td>
-            </tr>
-          ) : (
-            products.map((p) => (
-              <tr key={p.id}>
-                <td>{p.id}</td>
-                <td>
-                  <img
-                    src={p.image}
-                    alt={p.name}
-                    style={{ width: "50px", height: "50px", objectFit: "cover" }}
-                  />
-                </td>
-                <td>{p.name}</td>
-                <td>{p.category}</td>
-                <td>Rp {p.price.toLocaleString()}</td>
-                <td>
-
-                  {/* Tombol Edit → menuju halaman edit */}
-                  <Link
-                    href={`/admin/products/${p.id}/edit`}
-                    className="btn btn-warning btn-sm me-2"
-                  >
-                    Edit
-                  </Link>
-
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => handleDelete(p.id)}
-                  >
-                    Hapus
-                  </button>
-                </td>
+      {products.length === 0 ? (
+        <p>Belum ada produk.</p>
+      ) : (
+        <div className="table-responsive">
+          <table className="table table-bordered table-striped">
+            <thead className="table-dark">
+              <tr>
+                <th>ID</th>
+                <th>Nama</th>
+                <th>Harga</th>
+                <th>Deskripsi</th>
+                <th>Gambar</th>
+                <th>Aksi</th>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            </thead>
+
+            <tbody>
+              {products.map((p: any) => (
+                <tr key={p.id}>
+                  <td>{p.id}</td>
+                  <td>{p.name}</td>
+                  <td>Rp {Number(p.price).toLocaleString()}</td>
+                  <td>{p.description}</td>
+                  <td>
+                    <img
+                      src={p.imageurl}
+                      width={60}
+                      height={60}
+                      style={{ objectFit: "cover" }}
+                    />
+                  </td>
+                  <td>
+                    <Link
+                      href={`/admin/products/${p.id}`}
+                      className="btn btn-sm btn-info text-white me-2"
+                    >
+                      Detail
+                    </Link>
+
+                    <Link
+                      href={`/admin/products/${p.id}/edit`}
+                      className="btn btn-sm btn-warning me-2"
+                    >
+                      Edit
+                    </Link>
+
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={() => deleteProduct(p.id)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
