@@ -170,7 +170,6 @@ export default function MenuPage() {
                     >
                       Detail
                     </Link>
-                    <ProductList />
                   </div>
                 </div>
               </div>

@@ -4,13 +4,50 @@ import { useCart } from "@/context/cartContext";
 
 export default function CheckoutPage() {
   const { cart, total, clearCart } = useCart();
+
+  const [name, setName] = useState("");
+  const [address, setAddress] = useState("");
+  const [payment, setPayment] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleCheckout = (e: React.FormEvent) => {
+  const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (cart.length === 0) return alert("Keranjang masih kosong!");
-    setIsSubmitted(true);
-    clearCart();
+
+    // 🔥 Siapkan payload untuk backend
+    const orderBody = {
+      customer_name: name,
+      customer_address: address,
+      payment_method: payment,
+      items: cart.map((item) => ({
+        product_id: item.id,
+        quantity: item.qty,
+        price: item.price,
+      })),
+    };
+
+    try {
+      const res = await fetch("http://localhost:5000/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderBody),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        return alert("Gagal membuat pesanan: " + data.error);
+      }
+
+      console.log("ORDER CREATED:", data);
+
+      setIsSubmitted(true);
+      clearCart();
+    } catch (err) {
+      alert("Terjadi kesalahan saat checkout");
+      console.error(err);
+    }
   };
 
   if (isSubmitted) {
@@ -34,15 +71,34 @@ export default function CheckoutPage() {
             <form onSubmit={handleCheckout}>
               <div className="mb-3">
                 <label className="form-label">Nama Lengkap</label>
-                <input type="text" className="form-control" required />
+                <input
+                  type="text"
+                  className="form-control"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
               </div>
+
               <div className="mb-3">
                 <label className="form-label">Alamat</label>
-                <textarea className="form-control" rows={3} required></textarea>
+                <textarea
+                  className="form-control"
+                  rows={3}
+                  required
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                ></textarea>
               </div>
+
               <div className="mb-3">
                 <label className="form-label">Metode Pembayaran</label>
-                <select className="form-select" required>
+                <select
+                  className="form-select"
+                  required
+                  value={payment}
+                  onChange={(e) => setPayment(e.target.value)}
+                >
                   <option value="">Pilih Metode</option>
                   <option value="transfer">Transfer Bank</option>
                   <option value="cod">COD (Bayar di Tempat)</option>
