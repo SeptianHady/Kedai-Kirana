@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { addProduct } from "@/app/apis/fetchers/products";
 
 export default function AddProductPage() {
   const router = useRouter();
@@ -9,20 +10,34 @@ export default function AddProductPage() {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("Makanan");
   const [price, setPrice] = useState("");
+  const [description, setDescription] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
 
-  const handleSubmit = (e: any) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
+    setLoading(true);
 
-    // nanti disini dipasang API backend
-    console.log({
+    const newProduct = {
       name,
       category,
-      price,
-    });
+      price: Number(price),
+      description,
+      image: imageUrl,
+    };
 
-    alert("Produk berhasil ditambahkan (dummy). Backend belum dihubungkan.");
+    try {
+      const res = await addProduct(newProduct);
 
-    router.push("/admin/products");
+      alert("Produk berhasil ditambahkan!");
+      router.push("/admin/products");
+    } catch (error) {
+      console.error(error);
+      alert("Gagal menambah produk!");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -61,21 +76,55 @@ export default function AddProductPage() {
           <label className="form-label">Harga (Rp)</label>
           <input
             type="number"
+            min="1000"
             className="form-control"
             value={price}
-            min="1000"
             required
             onChange={(e) => setPrice(e.target.value)}
           />
         </div>
 
+        {/* Deskripsi */}
+        <div className="mb-3">
+          <label className="form-label">Deskripsi</label>
+          <textarea
+            className="form-control"
+            rows={3}
+            value={description}
+            required
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </div>
+
+        {/* Gambar */}
+        <div className="mb-3">
+          <label className="form-label">URL Gambar</label>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="https://contoh.com/gambar.jpg"
+            value={imageUrl}
+            required
+            onChange={(e) => setImageUrl(e.target.value)}
+          />
+        </div>
+
         {/* Tombol */}
         <div className="d-flex justify-content-between">
-          <button type="button" className="btn btn-secondary" onClick={() => router.push("/admin/products")}>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => router.push("/admin/products")}
+          >
             Batal
           </button>
-          <button type="submit" className="btn btn-primary">
-            Simpan Produk
+
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={loading}
+          >
+            {loading ? "Menyimpan..." : "Simpan Produk"}
           </button>
         </div>
       </form>

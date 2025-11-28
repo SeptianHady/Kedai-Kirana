@@ -1,124 +1,168 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 
-interface OrderItem {
-  name: string;
-  price: number;
-  quantity: number;
-}
+export default function AdminOrdersPage() {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
 
-interface Order {
-  id: number;
-  customer_name: string;
-  customer_phone: string;
-  customer_address: string;
-  items: OrderItem[];
-  total: number;
-  status: string;
-  created_at: string;
-}
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/orders");
+      const data = await res.json();
+      setOrders(data);
+    } catch (err) {
+      console.error("Error fetching orders:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-export default function OrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const deleteOrder = async (id: number) => {
+    if (!confirm("Yakin ingin menghapus order ini?")) return;
+
+    await fetch(`http://localhost:5000/orders/${id}`, {
+      method: "DELETE",
+    });
+
+    fetchOrders(); // refresh
+  };
+
+  const updateStatus = async (id: number, newStatus: string) => {
+    await fetch(`http://localhost:5000/orders/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus }),
+    });
+
+    setSelectedOrder(null);
+    fetchOrders(); // refresh
+  };
 
   useEffect(() => {
-    // sementara pakai data dummy
-    const dummyOrders: Order[] = [
-      {
-        id: 1,
-        customer_name: "Sinta Dewi",
-        customer_phone: "081234567890",
-        customer_address: "Jl. Melati No. 45, Jakarta",
-        items: [
-          { name: "Nasi Goreng Kirana", price: 25000, quantity: 2 },
-          { name: "Teh Manis Dingin", price: 8000, quantity: 2 },
-        ],
-        total: 66000,
-        status: "Selesai",
-        created_at: "2025-11-12",
-      },
-      {
-        id: 2,
-        customer_name: "Budi Santoso",
-        customer_phone: "089876543210",
-        customer_address: "Jl. Kenanga No. 12, Bandung",
-        items: [
-          { name: "Mie Ayam Kirana", price: 20000, quantity: 1 },
-          { name: "Es Jeruk", price: 10000, quantity: 1 },
-        ],
-        total: 30000,
-        status: "Diproses",
-        created_at: "2025-11-11",
-      },
-    ];
-
-    setOrders(dummyOrders);
+    fetchOrders();
   }, []);
+
+  if (loading) return <p className="p-4">Loading...</p>;
 
   return (
     <div className="container py-4">
-      <h2 className="mb-4 fw-bold">📦 Daftar Pesanan Pelanggan</h2>
+      <h2 className="fw-bold mb-4">📦 Admin Orders</h2>
 
-      <div className="table-responsive shadow-sm rounded">
-        <table className="table table-striped align-middle">
-          <thead className="table-dark">
-            <tr>
-              <th>ID</th>
-              <th>Nama Pelanggan</th>
-              <th>No. Telepon</th>
-              <th>Alamat</th>
-              <th>Item</th>
-              <th>Total</th>
-              <th>Status</th>
-              <th>Tanggal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.length > 0 ? (
-              orders.map((order) => (
+      {orders.length === 0 ? (
+        <p>Tidak ada order.</p>
+      ) : (
+        <div className="table-responsive">
+          <table className="table table-bordered table-striped">
+            <thead className="table-dark">
+              <tr>
+                <th>ID</th>
+                <th>Nama</th>
+                <th>Telepon</th>
+                <th>Alamat</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {orders.map((order: any) => (
                 <tr key={order.id}>
                   <td>{order.id}</td>
-                  <td>{order.customer_name}</td>
-                  <td>{order.customer_phone}</td>
-                  <td>{order.customer_address}</td>
-                  <td>
-                    <ul className="list-unstyled mb-0">
-                      {order.items.map((item, index) => (
-                        <li key={index}>
-                          {item.name} x{item.quantity} — Rp{" "}
-                          {(item.price * item.quantity).toLocaleString()}
-                        </li>
-                      ))}
-                    </ul>
-                  </td>
-                  <td>Rp {order.total.toLocaleString()}</td>
+                  <td>{order.customername}</td>
+                  <td>{order.customerphone}</td>
+                  <td>{order.address}</td>
+                  <td>Rp {Number(order.totalprice).toLocaleString()}</td>
                   <td>
                     <span
                       className={`badge ${
-                        order.status === "Selesai"
+                        order.status === "Pending"
+                          ? "bg-warning"
+                          : order.status === "Selesai"
                           ? "bg-success"
-                          : order.status === "Diproses"
-                          ? "bg-warning text-dark"
                           : "bg-secondary"
                       }`}
                     >
                       {order.status}
                     </span>
                   </td>
-                  <td>{order.created_at}</td>
+
+                  <td>
+                    <button
+                      className="btn btn-sm btn-primary me-2"
+                      onClick={() => setSelectedOrder(order)}
+                    >
+                      Update Status
+                    </button>
+
+                    <button
+                      className="btn btn-sm btn-danger me-2"
+                      onClick={() => deleteOrder(order.id)}
+                    >
+                      Delete
+                    </button>
+
+                    <Link 
+                      href={`/admin/orders/${order.id}`} 
+                      className="btn btn-sm btn-info text-white"
+                    >
+                      Detail
+                    </Link>
+                  </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={8} className="text-center py-4">
-                  Tidak ada pesanan.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* MODAL UPDATE STATUS */}
+      {selectedOrder && (
+        <div
+          className="modal d-block"
+          style={{ background: "rgba(0,0,0,0.5)" }}
+        >
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  Update Status Order #{selectedOrder.id}
+                </h5>
+                <button
+                  className="btn-close"
+                  onClick={() => setSelectedOrder(null)}
+                ></button>
+              </div>
+
+              <div className="modal-body">
+                <select
+                  className="form-select"
+                  defaultValue={selectedOrder.status}
+                  onChange={(e) =>
+                    updateStatus(selectedOrder.id, e.target.value)
+                  }
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="Diproses">Diproses</option>
+                  <option value="Selesai">Selesai</option>
+                  <option value="Dibatalkan">Dibatalkan</option>
+                </select>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setSelectedOrder(null)}
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
